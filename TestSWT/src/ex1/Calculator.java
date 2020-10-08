@@ -11,15 +11,18 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
+
 
 public class Calculator {
 
@@ -36,8 +39,13 @@ public class Calculator {
 	static TabItem tab1;
 	static TabItem tab2;
 
-	static Group group;
-	static Group group2;
+	static Composite compositeForTab1;
+	static Composite separatorComposite;
+	static Composite compositeForSecondLevel;
+	static Composite compositeForThirdLevel;
+	static Composite compositeForTab2;
+
+	static GridData gridDataForFirstLevel;
 
 	static Text text1;
 	static Text text2;
@@ -45,88 +53,26 @@ public class Calculator {
 
 	static Combo combo;
 
-	static Button buttonCalcButton;
+	static Button buttonCalc;
 	static Button buttonOnFly;
 
 	static Label labelOnFly;
 	static Label labelResult;
 	static Label labelResultText;
+	
 
 	public static void main(String[] args) {
 
 		folder = new TabFolder(shell, SWT.NONE);
-
+		
+		
 		// Tab 1
-		tab1 = new TabItem(folder, SWT.NONE);
-		tab1.setText("Calculator");
+		getTab1(folder);
 
 		// Tab 2
-		tab2 = new TabItem(folder, SWT.NONE);
-		tab2.setText("History");
-		tab2.setToolTipText("Contains the list of previous calculations");
+		getTab2(folder);
 
-		// group for first tab
-		group = new Group(folder, SWT.NONE);
-
-		// group2 for second tab
-		group2 = new Group(folder, SWT.NONE);
-
-		// text1
-		text1 = new Text(group, SWT.BORDER | SWT.LEFT);
-		text1.setBounds(10, 20, 100, 23);
-		text1.setMessage("first operand");
-
-		// text2
-		text2 = new Text(group, SWT.BORDER | SWT.LEFT);
-		text2.setBounds(180, 20, 100, 23);
-		text2.setMessage("second operand");
-
-		// text for history of operations
-		historyText = new Text(group2, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.READ_ONLY);
-		historyText.setBounds(10, 10, 270, 200);
-
-		// combo
-		combo = new Combo(group, SWT.READ_ONLY | SWT.DROP_DOWN);
-		combo.setItems(items);
-		combo.setToolTipText("select operation");
-		combo.setBounds(120, 20, 50, 23);
-
-		labelOnFly = new Label(group, SWT.NONE);
-		labelOnFly.setText("Calculate on the fly");
-		labelOnFly.setBounds(30, 154, 120, 24);
-
-		labelResult = new Label(group, SWT.BORDER);
-		labelResult.setBounds(100, 185, 170, 24);
-
-		labelResultText = new Label(group, SWT.NONE);
-		labelResultText.setText("Result:");
-		labelResultText.setBounds(60, 188, 50, 24);
-
-		// button for calculation
-		buttonCalcButton = new Button(group, SWT.PUSH);
-		buttonCalcButton.setText("Calculate");
-		buttonCalcButton.setBounds(170, 151, 100, 24);
-		buttonCalcButton.addSelectionListener(new MySelectionListener());
-
-		// button for fly check
-		buttonOnFly = new Button(group, SWT.CHECK);
-		buttonOnFly.setBounds(10, 150, 20, 24);
-		buttonOnFly.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Button source = (Button) e.getSource();
-				if (source.getSelection()) {
-					buttonCalcButton.setEnabled(false);
-				} else {
-					buttonCalcButton.setEnabled(true);
-				}
-			}
-		});
-
-		tab1.setControl(group);
-
-		tab2.setControl(group2);
-
+		shell.pack();
 		shell.open();
 
 		while (!shell.isDisposed()) {
@@ -138,24 +84,137 @@ public class Calculator {
 
 	// get new instance of shell
 	private static Shell getShell() {
+
+
 		Shell newShell = new Shell(display);
 		newShell.setText("SWT Calculator");
+		newShell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension dimension = toolkit.getScreenSize();
-		newShell.setBounds(dimension.width/2-157, dimension.height/2-150, 315, 300);
+		newShell.setBounds(dimension.width / 2 - 157, dimension.height / 2 - 150, 315, 300);
 		newShell.setLayout(new FillLayout());
 		return newShell;
 	}
+	
+	
 
-	// get string from reverse list
-	private static String listToString(List<String> list) {
-		final String separator = System.lineSeparator();
-		StringBuilder stringBuilder = new StringBuilder();
-		for (int i = list.size() - 1; i >= 0; i--) {
-			stringBuilder.append(list.get(i)).append(separator).append(separator);
-		}
-		return stringBuilder.toString().trim();
+
+	private static void getTab1(TabFolder tabFolder) {
+		tab1 = new TabItem(tabFolder, SWT.NONE);
+		tab1.setText("Calculator");
+
+		// composite for tab1
+		compositeForTab1 = new Composite(tabFolder, SWT.NONE);
+		compositeForTab1.setLayout(new GridLayout(3, true));
+
+		//
+		// First level
+		//
+
+		// grid data for first level
+		gridDataForFirstLevel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+
+		// text1
+		text1 = new Text(compositeForTab1, SWT.BORDER);
+		text1.setLayoutData(gridDataForFirstLevel);
+		text1.setMessage("first operand");
+
+		// combo
+		combo = new Combo(compositeForTab1, SWT.READ_ONLY | SWT.DROP_DOWN);
+		combo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		combo.setItems(items);
+		combo.setToolTipText("select operation");
+
+		// text2
+		text2 = new Text(compositeForTab1, SWT.BORDER);
+		text2.setLayoutData(gridDataForFirstLevel);
+		text2.setMessage("second operand");
+
+		//
+		// End of First level
+		//
+
+		separatorComposite = new Composite(compositeForTab1, SWT.NONE);
+		separatorComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+
+		//
+		// Second level
+		//
+
+		// composite for second level
+		compositeForSecondLevel = new Composite(compositeForTab1, SWT.NONE);
+		compositeForSecondLevel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		compositeForSecondLevel.setLayout(new GridLayout(2, false));
+
+		// button for fly check
+		buttonOnFly = new Button(compositeForSecondLevel, SWT.CHECK);
+		buttonOnFly.setBounds(10, 150, 20, 24);
+		buttonOnFly.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button source = (Button) e.getSource();
+				if (source.getSelection()) {
+					buttonCalc.setEnabled(false);
+				} else {
+					buttonCalc.setEnabled(true);
+				}
+			}
+		});
+
+		// label for "on fly"
+		labelOnFly = new Label(compositeForSecondLevel, SWT.NONE);
+		labelOnFly.setText("Calculate on the fly");
+
+		// button for calculation
+		buttonCalc = new Button(compositeForTab1, SWT.PUSH);
+		buttonCalc.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		buttonCalc.setText("Calculate");
+		buttonCalc.addSelectionListener(new MySelectionListener());
+
+		//
+		// End of Second level
+		//
+
+		//
+		// Third level
+		//
+
+		// composite for third level
+		compositeForThirdLevel = new Composite(compositeForTab1, SWT.NONE);
+		compositeForThirdLevel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		compositeForThirdLevel.setLayout(new GridLayout(2, false));
+
+		// label for print "Result:"
+		labelResultText = new Label(compositeForThirdLevel, SWT.NONE);
+		labelResultText.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		labelResultText.setText("Result:");
+
+		// label for print result
+		labelResult = new Label(compositeForThirdLevel, SWT.BORDER | SWT.RIGHT);
+		labelResult.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+
+		//
+		// End of Third level
+		//
+		tab1.setControl(compositeForTab1);
 	}
+
+	private static void getTab2(TabFolder tabFolder) {
+		tab2 = new TabItem(tabFolder, SWT.NONE);
+		tab2.setText("History");
+		tab2.setToolTipText("Contains the list of previous calculations");
+
+		// composite for tab2
+		compositeForTab2 = new Composite(tabFolder, SWT.NONE);
+		compositeForTab2.setLayout(new GridLayout(1, true));
+
+		// text for history of operations
+		historyText = new Text(compositeForTab2, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
+		historyText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+		tab2.setControl(compositeForTab2);
+	}
+
 
 	// my implementation of SelectionListener
 	private static class MySelectionListener implements SelectionListener {
@@ -215,6 +274,16 @@ public class Calculator {
 					+ " = " + format.format(res));
 			historyText.setText(listToString(historyList));
 			labelResult.setText(format.format(res));
+		}
+		
+		// get string from reverse list
+		private static String listToString(List<String> list) {
+			final String separator = System.lineSeparator();
+			StringBuilder stringBuilder = new StringBuilder();
+			for (int i = list.size() - 1; i >= 0; i--) {
+				stringBuilder.append(list.get(i)).append(separator).append(separator);
+			}
+			return stringBuilder.toString().trim();
 		}
 	}
 }

@@ -143,12 +143,11 @@ public class Calculator {
 
 		// composite for second level
 		compositeForSecondLevel = new Composite(compositeForTab1, SWT.NONE);
-		compositeForSecondLevel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		compositeForSecondLevel.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
 		compositeForSecondLevel.setLayout(new GridLayout(2, false));
 
 		// button for fly check
 		buttonOnFly = new Button(compositeForSecondLevel, SWT.CHECK);
-		buttonOnFly.setBounds(10, 150, 20, 24);
 		buttonOnFly.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -167,7 +166,7 @@ public class Calculator {
 
 		// button for calculation
 		buttonCalc = new Button(compositeForTab1, SWT.PUSH);
-		buttonCalc.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		buttonCalc.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1));
 		buttonCalc.setText("Calculate");
 		buttonCalc.addSelectionListener(new MySelectionListener());
 
@@ -181,7 +180,7 @@ public class Calculator {
 
 		// composite for third level
 		compositeForThirdLevel = new Composite(compositeForTab1, SWT.NONE);
-		compositeForThirdLevel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		compositeForThirdLevel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 3, 1));
 		compositeForThirdLevel.setLayout(new GridLayout(2, false));
 
 		// label for print "Result:"

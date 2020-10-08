@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -279,9 +280,8 @@ public class Calculator {
 		private static String listToString(List<String> list) {
 			final String separator = System.lineSeparator();
 			StringBuilder stringBuilder = new StringBuilder();
-			for (int i = list.size() - 1; i >= 0; i--) {
-				stringBuilder.append(list.get(i)).append(separator).append(separator);
-			}
+			Collections.reverse(list);
+			list.stream().forEach(x->stringBuilder.append(x).append(separator).append(separator));
 			return stringBuilder.toString().trim();
 		}
 	}

@@ -6,8 +6,12 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -23,7 +27,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
-
 
 public class Calculator {
 
@@ -60,13 +63,11 @@ public class Calculator {
 	static Label labelOnFly;
 	static Label labelResult;
 	static Label labelResultText;
-	
 
 	public static void main(String[] args) {
 
 		folder = new TabFolder(shell, SWT.NONE);
-		
-		
+
 		// Tab 1
 		getTab1(folder);
 
@@ -86,7 +87,6 @@ public class Calculator {
 	// get new instance of shell
 	private static Shell getShell() {
 
-
 		Shell newShell = new Shell(display);
 		newShell.setText("SWT Calculator");
 		newShell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
@@ -96,9 +96,6 @@ public class Calculator {
 		newShell.setLayout(new FillLayout());
 		return newShell;
 	}
-	
-	
-
 
 	private static void getTab1(TabFolder tabFolder) {
 		tab1 = new TabItem(tabFolder, SWT.NONE);
@@ -119,6 +116,8 @@ public class Calculator {
 		text1 = new Text(compositeForTab1, SWT.BORDER);
 		text1.setLayoutData(gridDataForFirstLevel);
 		text1.setMessage("first operand");
+		text1.setToolTipText("Enter an integer or floating point number");
+		text1.addModifyListener(new CustomModifyListenerForTextOfOperand());
 
 		// combo
 		combo = new Combo(compositeForTab1, SWT.READ_ONLY | SWT.DROP_DOWN);
@@ -130,6 +129,8 @@ public class Calculator {
 		text2 = new Text(compositeForTab1, SWT.BORDER);
 		text2.setLayoutData(gridDataForFirstLevel);
 		text2.setMessage("second operand");
+		text2.setToolTipText("Enter an integer or floating point number");
+		text2.addModifyListener(new CustomModifyListenerForTextOfOperand());
 
 		//
 		// End of First level
@@ -149,12 +150,14 @@ public class Calculator {
 
 		// button for fly check
 		buttonOnFly = new Button(compositeForSecondLevel, SWT.CHECK);
+		buttonOnFly.setToolTipText("Automatic calculate without clicking the Calculate button");
 		buttonOnFly.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Button source = (Button) e.getSource();
 				if (source.getSelection()) {
 					buttonCalc.setEnabled(false);
+					MySelectionListener.doCalculate();
 				} else {
 					buttonCalc.setEnabled(true);
 				}
@@ -215,12 +218,20 @@ public class Calculator {
 		tab2.setControl(compositeForTab2);
 	}
 
-
 	// my implementation of SelectionListener
 	private static class MySelectionListener implements SelectionListener {
 
 		@Override
 		public void widgetSelected(SelectionEvent e) {
+			doCalculate();
+		}
+
+		@Override
+		public void widgetDefaultSelected(SelectionEvent e) {
+			// empty
+		}
+
+		public static void doCalculate() {
 			if (text1.getText() != null && text1.getText().length() != 0 && text2.getText() != null
 					&& text2.getText().length() != 0 && combo.getSelectionIndex() >= 0) {
 				double oper1;
@@ -231,7 +242,7 @@ public class Calculator {
 					oper1 = Double.parseDouble(text1.getText());
 					oper2 = Double.parseDouble(text2.getText());
 				} catch (Exception exception) {
-					labelResult.setText("Something went wrong");
+					labelResult.setText("Wrong input. Insert the number!");
 					return;
 				}
 
@@ -261,28 +272,44 @@ public class Calculator {
 				}
 			}
 		}
-
-		@Override
-		public void widgetDefaultSelected(SelectionEvent e) {
-			// empty
-		}
-
+		
 		private static void makeAnswer(Combo combo, Text historyText, Label labelResult, double oper1, double oper2,
 				double res) {
-			DecimalFormat format = new DecimalFormat("#,###.#####");
+			DecimalFormat format = new DecimalFormat("#,###.########");
 			historyList.add(format.format(oper1) + " " + items[combo.getSelectionIndex()] + " " + format.format(oper2)
 					+ " = " + format.format(res));
 			historyText.setText(listToString(historyList));
 			labelResult.setText(format.format(res));
 		}
-		
+
 		// get string from reverse list
 		private static String listToString(List<String> list) {
 			final String separator = System.lineSeparator();
 			StringBuilder stringBuilder = new StringBuilder();
 			Collections.reverse(list);
-			list.stream().forEach(x->stringBuilder.append(x).append(separator).append(separator));
+			list.stream().forEach(x -> stringBuilder.append(x).append(separator).append(separator));
 			return stringBuilder.toString().trim();
 		}
+	}
+
+	private static class CustomModifyListenerForTextOfOperand implements ModifyListener {
+		@Override
+		public void modifyText(ModifyEvent e) {
+			Text text = (Text)e.getSource();
+			Pattern p = Pattern.compile("(^[\\+\\-]?[0-9]*[.]?[0-9]+$)|(^[\\+\\-]?[0-9]+[.]?$)");
+			Matcher matcher = p.matcher(text.getText());
+			if (matcher.find() || text.getText().length() == 0) {
+				text.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+				labelResult.setText("");
+			} else {
+				text.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+				labelResult.setText("Wrong input. Insert the number!");
+			}
+			
+			if(buttonOnFly.getSelection()) {
+				MySelectionListener.doCalculate();
+			}
+		}
+
 	}
 }

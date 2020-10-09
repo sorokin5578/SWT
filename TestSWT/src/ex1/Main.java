@@ -9,8 +9,8 @@ public class Main {
 		Display display = new Display();
 		Shell shell = new Shell(display);
 
-		Calculator calculator = new Calculator(shell);
-		calculator.createCalculator();
+		new Calculator(shell);
+		
 		shell.pack();
 		shell.open();
 		while (!shell.isDisposed()) {

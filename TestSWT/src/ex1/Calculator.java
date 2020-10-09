@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -29,9 +30,17 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
+
+
+/**
+ * @author Illia
+ * @version 1.3
+ * 
+ * This class to create a calculator using SWT
+ */
 public class Calculator {
 
-	private Shell shell;
+	private final Shell shell;
 
 	private List<String> historyList = new ArrayList<>();
 
@@ -46,15 +55,14 @@ public class Calculator {
 
 	private Label resultFieldLabel;
 
-	public Calculator() {
-	}
-
 	public Calculator(Shell shell) {
 		this.shell = shell;
+		initCalculator();
+		
 	}
 
-	public void createCalculator() {
-		createShell();
+	private void initCalculator() {
+		initShell();
 		TabFolder mainFolder = new TabFolder(shell, SWT.NONE);
 
 		// Tab 1
@@ -65,7 +73,7 @@ public class Calculator {
 	}
 
 	// get new instance of shell
-	private void createShell() {
+	private void initShell() {
 		shell.setText("SWT Calculator");
 		shell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -99,7 +107,7 @@ public class Calculator {
 		// combo
 		menuWithOperationsCombo = new Combo(compositeForCalculateTab, SWT.READ_ONLY | SWT.DROP_DOWN);
 		menuWithOperationsCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		menuWithOperationsCombo.setItems(Arrays.copyOf(Arrays.stream(Operation.values()).map(x -> x.value).toArray(),
+		menuWithOperationsCombo.setItems(Arrays.copyOf(Arrays.stream(Operation.values()).map(x -> x.titleString).toArray(),
 				Operation.values().length, String[].class));
 		menuWithOperationsCombo.setToolTipText("select operation");
 		menuWithOperationsCombo.addSelectionListener(new SelectionAdapter() {
@@ -216,11 +224,11 @@ public class Calculator {
 
 	// get string from reverse list
 	private String listToString(List<String> list) {
+		List<String> copyList=new ArrayList<>();
+		copyList.addAll(list);
 		final String separator = System.lineSeparator();
-		StringBuilder stringBuilder = new StringBuilder();
-		Collections.reverse(list);
-		list.stream().forEach(x -> stringBuilder.append(x).append(separator).append(separator));
-		return stringBuilder.toString().trim();
+		Collections.reverse(copyList);
+		return copyList.stream().collect(Collectors.joining(separator+separator)).trim();
 	}
 
 	private void doCalculate() {
@@ -239,16 +247,16 @@ public class Calculator {
 			}
 
 			String operation = menuWithOperationsCombo.getText();
-			if (Operation.ADD.equalsTo(operation)) {
+			if (Operation.ADD.equalsToEntranceStr(operation)) {
 				res = oper1 + oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.SUB.equalsTo(operation)) {
+			} else if (Operation.SUB.equalsToEntranceStr(operation)) {
 				res = oper1 - oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.MULT.equalsTo(operation)) {
+			} else if (Operation.MULT.equalsToEntranceStr(operation)) {
 				res = oper1 * oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.DIV.equalsTo(operation)) {
+			} else if (Operation.DIV.equalsToEntranceStr(operation)) {
 				if (oper2 != 0) {
 					res = oper1 / oper2;
 					makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
@@ -295,21 +303,33 @@ public class Calculator {
 
 	}
 
+	
+	/**
+	 * This is an enum for initializing arithmetic operations
+	 */
 	private enum Operation {
 		ADD("+"), SUB("-"), MULT("*"), DIV("/");
 
-		private String value;
+		/**
+		 * This is string field which contain title of element
+		 */
+		private String titleString;
 
-		Operation(String value) {
-			this.value = value;
+		/**
+		 * @param titleString string field which must contain title of element
+		 * Constructor for initializing enum
+		 */
+		Operation(String titleString) {
+			this.titleString = titleString;
 		}
 
-		public String value() {
-			return value;
-		}
-
-		public boolean equalsTo(String name) {
-			return value.equals(name);
+		/**
+		 * @param entranceStr string which to be compared against the enum title
+		 * @return returns true if the entranceStr is equal to the title, returns false if the entranceStr is not equal to the title
+		 * This method of checking if title and entranceStr are equal
+		 */
+		public boolean equalsToEntranceStr(String entranceStr) {
+			return titleString.equals(entranceStr);
 		}
 	}
 }

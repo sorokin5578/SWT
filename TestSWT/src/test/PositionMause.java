@@ -16,7 +16,7 @@ public class PositionMause {
         shell = new Shell(display);
 
         positiongLabel = new Label(shell, SWT.BORDER);
-
+        
         int x= 60;
         int y=20;
         int width =400;

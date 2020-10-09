@@ -11,7 +11,6 @@ public class Main {
 
 		Calculator calculator = new Calculator(shell);
 		calculator.createCalculator();
-		
 		shell.pack();
 		shell.open();
 		while (!shell.isDisposed()) {

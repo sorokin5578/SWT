@@ -209,7 +209,7 @@ public class Calculator {
 			double res) {
 		DecimalFormat format = new DecimalFormat("#,###.########");
 		historyList.add(format.format(oper1) + " " + menuWithOperationsCombo.getText() + " " + format.format(oper2)
-				+ " = " + format.format(res));
+				+ " = " +  format.format(res));
 		historyText.setText(listToString(historyList));
 		labelResult.setText(format.format(res));
 	}
@@ -230,7 +230,6 @@ public class Calculator {
 			double oper1;
 			double oper2;
 			double res;
-
 			try {
 				oper1 = Double.parseDouble(firstOperandText.getText());
 				oper2 = Double.parseDouble(secondOperandText.getText());

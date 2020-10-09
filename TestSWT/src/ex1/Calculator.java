@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -30,113 +31,98 @@ import org.eclipse.swt.widgets.Text;
 
 public class Calculator {
 
-	private static String[] items = { "+", "-", "*", "/" };
+	private Shell shell;
 
-	private static List<String> historyList = new ArrayList<>();
+	private List<String> historyList = new ArrayList<>();
 
-	static Display display = new Display();
+	private Text firstOperandText;
+	private Text secondOperandText;
+	private Text historyText;
 
-	static Shell shell = getShell();
+	private Combo menuWithOperationsCombo;
 
-	static TabFolder folder;
+	private Button calculateButton;
+	private Button onFlyButton;
 
-	static TabItem tab1;
-	static TabItem tab2;
+	private Label resultFieldLabel;
 
-	static Composite compositeForTab1;
-	static Composite separatorComposite;
-	static Composite compositeForSecondLevel;
-	static Composite compositeForThirdLevel;
-	static Composite compositeForTab2;
+	public Calculator() {
+	}
 
-	static GridData gridDataForFirstLevel;
+	public Calculator(Shell shell) {
+		this.shell = shell;
+	}
 
-	static Text text1;
-	static Text text2;
-	static Text historyText;
-
-	static Combo combo;
-
-	static Button buttonCalc;
-	static Button buttonOnFly;
-
-	static Label labelOnFly;
-	static Label labelResult;
-	static Label labelResultText;
-
-	public static void main(String[] args) {
-
-		folder = new TabFolder(shell, SWT.NONE);
+	public void createCalculator() {
+		createShell();
+		TabFolder mainFolder = new TabFolder(shell, SWT.NONE);
 
 		// Tab 1
-		getTab1(folder);
+		createCalculateTabItem(mainFolder);
 
 		// Tab 2
-		getTab2(folder);
-
-		shell.pack();
-		shell.open();
-
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-		display.dispose();
+		createHistoryTabItem(mainFolder);
 	}
 
 	// get new instance of shell
-	private static Shell getShell() {
-
-		Shell newShell = new Shell(display);
-		newShell.setText("SWT Calculator");
-		newShell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
+	private void createShell() {
+		shell.setText("SWT Calculator");
+		shell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension dimension = toolkit.getScreenSize();
-		newShell.setBounds(dimension.width / 2 - 157, dimension.height / 2 - 150, 315, 300);
-		newShell.setLayout(new FillLayout());
-		return newShell;
+		shell.setBounds(dimension.width / 2 - 157, dimension.height / 2 - 150, 315, 300);
+		shell.setLayout(new FillLayout());
 	}
 
-	private static void getTab1(TabFolder tabFolder) {
-		tab1 = new TabItem(tabFolder, SWT.NONE);
-		tab1.setText("Calculator");
+	private void createCalculateTabItem(TabFolder tabFolder) {
+		TabItem calculateTabItem = new TabItem(tabFolder, SWT.NONE);
+		calculateTabItem.setText("Calculator");
 
 		// composite for tab1
-		compositeForTab1 = new Composite(tabFolder, SWT.NONE);
-		compositeForTab1.setLayout(new GridLayout(3, true));
+		Composite compositeForCalculateTab = new Composite(tabFolder, SWT.NONE);
+		compositeForCalculateTab.setLayout(new GridLayout(3, true));
 
 		//
 		// First level
 		//
 
 		// grid data for first level
-		gridDataForFirstLevel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+		GridData gridDataForFirstLevel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 
 		// text1
-		text1 = new Text(compositeForTab1, SWT.BORDER);
-		text1.setLayoutData(gridDataForFirstLevel);
-		text1.setMessage("first operand");
-		text1.setToolTipText("Enter an integer or floating point number");
-		text1.addModifyListener(new CustomModifyListenerForTextOfOperand());
+		firstOperandText = new Text(compositeForCalculateTab, SWT.BORDER);
+		firstOperandText.setLayoutData(gridDataForFirstLevel);
+		firstOperandText.setMessage("first operand");
+		firstOperandText.setToolTipText("Enter an integer or floating point number");
+		firstOperandText.addModifyListener(new CustomModifyListenerForTextOfOperand());
 
 		// combo
-		combo = new Combo(compositeForTab1, SWT.READ_ONLY | SWT.DROP_DOWN);
-		combo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		combo.setItems(items);
-		combo.setToolTipText("select operation");
+		menuWithOperationsCombo = new Combo(compositeForCalculateTab, SWT.READ_ONLY | SWT.DROP_DOWN);
+		menuWithOperationsCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		menuWithOperationsCombo.setItems(Arrays.copyOf(Arrays.stream(Operation.values()).map(x -> x.value).toArray(),
+				Operation.values().length, String[].class));
+		menuWithOperationsCombo.setToolTipText("select operation");
+		menuWithOperationsCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (onFlyButton.getSelection()) {
+					doCalculate();
+				}
+			}
+		});
 
 		// text2
-		text2 = new Text(compositeForTab1, SWT.BORDER);
-		text2.setLayoutData(gridDataForFirstLevel);
-		text2.setMessage("second operand");
-		text2.setToolTipText("Enter an integer or floating point number");
-		text2.addModifyListener(new CustomModifyListenerForTextOfOperand());
+		secondOperandText = new Text(compositeForCalculateTab, SWT.BORDER);
+		secondOperandText.setLayoutData(gridDataForFirstLevel);
+		secondOperandText.setMessage("second operand");
+		secondOperandText.setToolTipText("Enter an integer or floating point number");
+		secondOperandText.addModifyListener(new CustomModifyListenerForTextOfOperand());
 
 		//
 		// End of First level
 		//
 
-		separatorComposite = new Composite(compositeForTab1, SWT.NONE);
+		Composite separatorComposite = new Composite(compositeForCalculateTab, SWT.NONE);
 		separatorComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 
 		//
@@ -144,35 +130,35 @@ public class Calculator {
 		//
 
 		// composite for second level
-		compositeForSecondLevel = new Composite(compositeForTab1, SWT.NONE);
+		Composite compositeForSecondLevel = new Composite(compositeForCalculateTab, SWT.NONE);
 		compositeForSecondLevel.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
 		compositeForSecondLevel.setLayout(new GridLayout(2, false));
 
 		// button for fly check
-		buttonOnFly = new Button(compositeForSecondLevel, SWT.CHECK);
-		buttonOnFly.setToolTipText("Automatic calculate without clicking the Calculate button");
-		buttonOnFly.addSelectionListener(new SelectionAdapter() {
+		onFlyButton = new Button(compositeForSecondLevel, SWT.CHECK);
+		onFlyButton.setToolTipText("Automatic calculate without clicking the Calculate button");
+		onFlyButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Button source = (Button) e.getSource();
 				if (source.getSelection()) {
-					buttonCalc.setEnabled(false);
-					MySelectionListener.doCalculate();
+					calculateButton.setEnabled(false);
+					doCalculate();
 				} else {
-					buttonCalc.setEnabled(true);
+					calculateButton.setEnabled(true);
 				}
 			}
 		});
 
 		// label for "on fly"
-		labelOnFly = new Label(compositeForSecondLevel, SWT.NONE);
-		labelOnFly.setText("Calculate on the fly");
+		Label onFlyLabel = new Label(compositeForSecondLevel, SWT.NONE);
+		onFlyLabel.setText("Calculate on the fly");
 
 		// button for calculation
-		buttonCalc = new Button(compositeForTab1, SWT.PUSH);
-		buttonCalc.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1));
-		buttonCalc.setText("Calculate");
-		buttonCalc.addSelectionListener(new MySelectionListener());
+		calculateButton = new Button(compositeForCalculateTab, SWT.PUSH);
+		calculateButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1));
+		calculateButton.setText("Calculate");
+		calculateButton.addSelectionListener(new CustomerSelectionListenerForCalculateButton());
 
 		//
 		// End of Second level
@@ -183,43 +169,99 @@ public class Calculator {
 		//
 
 		// composite for third level
-		compositeForThirdLevel = new Composite(compositeForTab1, SWT.NONE);
+		Composite compositeForThirdLevel = new Composite(compositeForCalculateTab, SWT.NONE);
 		compositeForThirdLevel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 3, 1));
 		compositeForThirdLevel.setLayout(new GridLayout(2, false));
 
 		// label for print "Result:"
-		labelResultText = new Label(compositeForThirdLevel, SWT.NONE);
-		labelResultText.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-		labelResultText.setText("Result:");
+		Label resultTextLabel = new Label(compositeForThirdLevel, SWT.NONE);
+		resultTextLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		resultTextLabel.setText("Result:");
 
 		// label for print result
-		labelResult = new Label(compositeForThirdLevel, SWT.BORDER | SWT.RIGHT);
-		labelResult.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		resultFieldLabel = new Label(compositeForThirdLevel, SWT.BORDER | SWT.RIGHT);
+		resultFieldLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
 		//
 		// End of Third level
 		//
-		tab1.setControl(compositeForTab1);
+		calculateTabItem.setControl(compositeForCalculateTab);
 	}
 
-	private static void getTab2(TabFolder tabFolder) {
-		tab2 = new TabItem(tabFolder, SWT.NONE);
-		tab2.setText("History");
-		tab2.setToolTipText("Contains the list of previous calculations");
+	private void createHistoryTabItem(TabFolder tabFolder) {
+		TabItem historyTabItem = new TabItem(tabFolder, SWT.NONE);
+		historyTabItem.setText("History");
+		historyTabItem.setToolTipText("Contains the list of previous calculations");
 
 		// composite for tab2
-		compositeForTab2 = new Composite(tabFolder, SWT.NONE);
-		compositeForTab2.setLayout(new GridLayout(1, true));
+		Composite compositeForHistoryTab = new Composite(tabFolder, SWT.NONE);
+		compositeForHistoryTab.setLayout(new GridLayout(1, true));
 
 		// text for history of operations
-		historyText = new Text(compositeForTab2, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
+		historyText = new Text(compositeForHistoryTab,
+				SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
 		historyText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		tab2.setControl(compositeForTab2);
+		historyTabItem.setControl(compositeForHistoryTab);
+	}
+
+	private void makeAnswerForHistoryList(Combo combo, Text historyText, Label labelResult, double oper1, double oper2,
+			double res) {
+		DecimalFormat format = new DecimalFormat("#,###.########");
+		historyList.add(format.format(oper1) + " " + menuWithOperationsCombo.getText() + " " + format.format(oper2)
+				+ " = " + format.format(res));
+		historyText.setText(listToString(historyList));
+		labelResult.setText(format.format(res));
+	}
+
+	// get string from reverse list
+	private String listToString(List<String> list) {
+		final String separator = System.lineSeparator();
+		StringBuilder stringBuilder = new StringBuilder();
+		Collections.reverse(list);
+		list.stream().forEach(x -> stringBuilder.append(x).append(separator).append(separator));
+		return stringBuilder.toString().trim();
+	}
+
+	private void doCalculate() {
+		if (firstOperandText.getText() != null && firstOperandText.getText().length() != 0
+				&& secondOperandText.getText() != null && secondOperandText.getText().length() != 0
+				&& menuWithOperationsCombo.getSelectionIndex() >= 0) {
+			double oper1;
+			double oper2;
+			double res;
+
+			try {
+				oper1 = Double.parseDouble(firstOperandText.getText());
+				oper2 = Double.parseDouble(secondOperandText.getText());
+			} catch (Exception exception) {
+				resultFieldLabel.setText("Wrong input. Insert the number!");
+				return;
+			}
+
+			String operation = menuWithOperationsCombo.getText();
+			if (Operation.ADD.equalsTo(operation)) {
+				res = oper1 + oper2;
+				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
+			} else if (Operation.SUB.equalsTo(operation)) {
+				res = oper1 - oper2;
+				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
+			} else if (Operation.MULT.equalsTo(operation)) {
+				res = oper1 * oper2;
+				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
+			} else if (Operation.DIV.equalsTo(operation)) {
+				if (oper2 != 0) {
+					res = oper1 / oper2;
+					makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
+				} else {
+					resultFieldLabel.setText("Division by zero");
+				}
+			}
+		}
 	}
 
 	// my implementation of SelectionListener
-	private static class MySelectionListener implements SelectionListener {
+	private class CustomerSelectionListenerForCalculateButton implements SelectionListener {
 
 		@Override
 		public void widgetSelected(SelectionEvent e) {
@@ -230,86 +272,45 @@ public class Calculator {
 		public void widgetDefaultSelected(SelectionEvent e) {
 			// empty
 		}
-
-		public static void doCalculate() {
-			if (text1.getText() != null && text1.getText().length() != 0 && text2.getText() != null
-					&& text2.getText().length() != 0 && combo.getSelectionIndex() >= 0) {
-				double oper1;
-				double oper2;
-				double res;
-
-				try {
-					oper1 = Double.parseDouble(text1.getText());
-					oper2 = Double.parseDouble(text2.getText());
-				} catch (Exception exception) {
-					labelResult.setText("Wrong input. Insert the number!");
-					return;
-				}
-
-				switch (combo.getSelectionIndex()) {
-				case 0:
-					res = oper1 + oper2;
-					makeAnswer(combo, historyText, labelResult, oper1, oper2, res);
-					break;
-				case 1:
-					res = oper1 - oper2;
-					makeAnswer(combo, historyText, labelResult, oper1, oper2, res);
-					break;
-				case 2:
-					res = oper1 * oper2;
-					makeAnswer(combo, historyText, labelResult, oper1, oper2, res);
-					break;
-				case 3:
-					if (oper2 != 0) {
-						res = oper1 / oper2;
-						makeAnswer(combo, historyText, labelResult, oper1, oper2, res);
-					} else {
-						labelResult.setText("Division by zero");
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}
-		
-		private static void makeAnswer(Combo combo, Text historyText, Label labelResult, double oper1, double oper2,
-				double res) {
-			DecimalFormat format = new DecimalFormat("#,###.########");
-			historyList.add(format.format(oper1) + " " + items[combo.getSelectionIndex()] + " " + format.format(oper2)
-					+ " = " + format.format(res));
-			historyText.setText(listToString(historyList));
-			labelResult.setText(format.format(res));
-		}
-
-		// get string from reverse list
-		private static String listToString(List<String> list) {
-			final String separator = System.lineSeparator();
-			StringBuilder stringBuilder = new StringBuilder();
-			Collections.reverse(list);
-			list.stream().forEach(x -> stringBuilder.append(x).append(separator).append(separator));
-			return stringBuilder.toString().trim();
-		}
 	}
 
-	private static class CustomModifyListenerForTextOfOperand implements ModifyListener {
+	// my implementation of ModifyListener
+	private class CustomModifyListenerForTextOfOperand implements ModifyListener {
 		@Override
 		public void modifyText(ModifyEvent e) {
-			Text text = (Text)e.getSource();
+			Text text = (Text) e.getSource();
 			Pattern p = Pattern.compile("(^[\\+\\-]?[0-9]*[.]?[0-9]+$)|(^[\\+\\-]?[0-9]+[.]?$)");
 			Matcher matcher = p.matcher(text.getText());
 			if (matcher.find() || text.getText().length() == 0) {
 				text.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
-				labelResult.setText("");
+				resultFieldLabel.setText("");
 			} else {
 				text.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
-				labelResult.setText("Wrong input. Insert the number!");
+				resultFieldLabel.setText("Wrong input. Insert the number!");
 			}
-			
-			if(buttonOnFly.getSelection()) {
-				MySelectionListener.doCalculate();
+
+			if (onFlyButton.getSelection()) {
+				doCalculate();
 			}
 		}
 
+	}
+
+	private enum Operation {
+		ADD("+"), SUB("-"), MULT("*"), DIV("/");
+
+		private String value;
+
+		Operation(String value) {
+			this.value = value;
+		}
+
+		public String value() {
+			return value;
+		}
+
+		public boolean equalsTo(String name) {
+			return value.equals(name);
+		}
 	}
 }

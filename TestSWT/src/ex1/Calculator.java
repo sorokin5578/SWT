@@ -65,10 +65,8 @@ public class Calculator {
 		initShell();
 		TabFolder mainFolder = new TabFolder(shell, SWT.NONE);
 
-		// Tab 1
 		createCalculateTabItem(mainFolder);
 
-		// Tab 2
 		createHistoryTabItem(mainFolder);
 	}
 
@@ -86,7 +84,6 @@ public class Calculator {
 		TabItem calculateTabItem = new TabItem(tabFolder, SWT.NONE);
 		calculateTabItem.setText("Calculator");
 
-		// composite for tab1
 		Composite compositeForCalculateTab = new Composite(tabFolder, SWT.NONE);
 		compositeForCalculateTab.setLayout(new GridLayout(3, true));
 
@@ -94,20 +91,17 @@ public class Calculator {
 		// First level
 		//
 
-		// grid data for first level
 		GridData gridDataForFirstLevel = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 
-		// text1
 		firstOperandText = new Text(compositeForCalculateTab, SWT.BORDER);
 		firstOperandText.setLayoutData(gridDataForFirstLevel);
 		firstOperandText.setMessage("first operand");
 		firstOperandText.setToolTipText("Enter an integer or floating point number");
 		firstOperandText.addModifyListener(new CustomModifyListenerForTextOfOperand());
 
-		// combo
 		menuWithOperationsCombo = new Combo(compositeForCalculateTab, SWT.READ_ONLY | SWT.DROP_DOWN);
 		menuWithOperationsCombo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		menuWithOperationsCombo.setItems(Arrays.copyOf(Arrays.stream(Operation.values()).map(x -> x.titleString).toArray(),
+		menuWithOperationsCombo.setItems(Arrays.copyOf(Arrays.stream(Operation.values()).map(x -> x.title).toArray(),
 				Operation.values().length, String[].class));
 		menuWithOperationsCombo.setToolTipText("select operation");
 		menuWithOperationsCombo.addSelectionListener(new SelectionAdapter() {
@@ -119,7 +113,6 @@ public class Calculator {
 			}
 		});
 
-		// text2
 		secondOperandText = new Text(compositeForCalculateTab, SWT.BORDER);
 		secondOperandText.setLayoutData(gridDataForFirstLevel);
 		secondOperandText.setMessage("second operand");
@@ -137,12 +130,10 @@ public class Calculator {
 		// Second level
 		//
 
-		// composite for second level
 		Composite compositeForSecondLevel = new Composite(compositeForCalculateTab, SWT.NONE);
 		compositeForSecondLevel.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
 		compositeForSecondLevel.setLayout(new GridLayout(2, false));
 
-		// button for fly check
 		onFlyButton = new Button(compositeForSecondLevel, SWT.CHECK);
 		onFlyButton.setToolTipText("Automatic calculate without clicking the Calculate button");
 		onFlyButton.addSelectionListener(new SelectionAdapter() {
@@ -158,11 +149,9 @@ public class Calculator {
 			}
 		});
 
-		// label for "on fly"
 		Label onFlyLabel = new Label(compositeForSecondLevel, SWT.NONE);
 		onFlyLabel.setText("Calculate on the fly");
 
-		// button for calculation
 		calculateButton = new Button(compositeForCalculateTab, SWT.PUSH);
 		calculateButton.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, true, 1, 1));
 		calculateButton.setText("Calculate");
@@ -176,17 +165,14 @@ public class Calculator {
 		// Third level
 		//
 
-		// composite for third level
 		Composite compositeForThirdLevel = new Composite(compositeForCalculateTab, SWT.NONE);
 		compositeForThirdLevel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 3, 1));
 		compositeForThirdLevel.setLayout(new GridLayout(2, false));
 
-		// label for print "Result:"
 		Label resultTextLabel = new Label(compositeForThirdLevel, SWT.NONE);
 		resultTextLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
 		resultTextLabel.setText("Result:");
 
-		// label for print result
 		resultFieldLabel = new Label(compositeForThirdLevel, SWT.BORDER | SWT.RIGHT);
 		resultFieldLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
@@ -201,11 +187,9 @@ public class Calculator {
 		historyTabItem.setText("History");
 		historyTabItem.setToolTipText("Contains the list of previous calculations");
 
-		// composite for tab2
 		Composite compositeForHistoryTab = new Composite(tabFolder, SWT.NONE);
 		compositeForHistoryTab.setLayout(new GridLayout(1, true));
 
-		// text for history of operations
 		historyText = new Text(compositeForHistoryTab,
 				SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
 		historyText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -222,13 +206,18 @@ public class Calculator {
 		labelResult.setText(format.format(res));
 	}
 
-	// get string from reverse list
 	private String listToString(List<String> list) {
 		List<String> copyList=new ArrayList<>();
 		copyList.addAll(list);
 		final String separator = System.lineSeparator();
 		Collections.reverse(copyList);
 		return copyList.stream().collect(Collectors.joining(separator+separator)).trim();
+	}
+	
+	private boolean isInputDataValid(String input) {
+		Pattern p = Pattern.compile("(^[\\+\\-]?[0-9]*[.]?[0-9]+$)|(^[\\+\\-]?[0-9]+[.]?$)");
+		Matcher matcher = p.matcher(input);
+		return matcher.find();
 	}
 
 	private void doCalculate() {
@@ -239,24 +228,28 @@ public class Calculator {
 			double oper2;
 			double res;
 			try {
+				if(isInputDataValid(firstOperandText.getText())&&isInputDataValid(secondOperandText.getText())) {
 				oper1 = Double.parseDouble(firstOperandText.getText());
 				oper2 = Double.parseDouble(secondOperandText.getText());
-			} catch (Exception exception) {
+				}else {
+					throw new NumberFormatException();
+				}
+			} catch (NumberFormatException exception) {
 				resultFieldLabel.setText("Wrong input. Insert the number!");
 				return;
 			}
 
 			String operation = menuWithOperationsCombo.getText();
-			if (Operation.ADD.equalsToEntranceStr(operation)) {
+			if (Operation.ADD.titleEqualsTo(operation)) {
 				res = oper1 + oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.SUB.equalsToEntranceStr(operation)) {
+			} else if (Operation.SUB.titleEqualsTo(operation)) {
 				res = oper1 - oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.MULT.equalsToEntranceStr(operation)) {
+			} else if (Operation.MULT.titleEqualsTo(operation)) {
 				res = oper1 * oper2;
 				makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
-			} else if (Operation.DIV.equalsToEntranceStr(operation)) {
+			} else if (Operation.DIV.titleEqualsTo(operation)) {
 				if (oper2 != 0) {
 					res = oper1 / oper2;
 					makeAnswerForHistoryList(menuWithOperationsCombo, historyText, resultFieldLabel, oper1, oper2, res);
@@ -267,7 +260,6 @@ public class Calculator {
 		}
 	}
 
-	// my implementation of SelectionListener
 	private class CustomerSelectionListenerForCalculateButton implements SelectionListener {
 
 		@Override
@@ -281,14 +273,11 @@ public class Calculator {
 		}
 	}
 
-	// my implementation of ModifyListener
 	private class CustomModifyListenerForTextOfOperand implements ModifyListener {
 		@Override
 		public void modifyText(ModifyEvent e) {
 			Text text = (Text) e.getSource();
-			Pattern p = Pattern.compile("(^[\\+\\-]?[0-9]*[.]?[0-9]+$)|(^[\\+\\-]?[0-9]+[.]?$)");
-			Matcher matcher = p.matcher(text.getText());
-			if (matcher.find() || text.getText().length() == 0) {
+			if (isInputDataValid(text.getText()) || text.getText().length() == 0) {
 				text.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 				resultFieldLabel.setText("");
 			} else {
@@ -305,31 +294,31 @@ public class Calculator {
 
 	
 	/**
-	 * This is an enum for initializing arithmetic operations
+	 * This is an enum for initializing arithmetic operations. The title contains the arithmetic operation symbol.
 	 */
 	private enum Operation {
 		ADD("+"), SUB("-"), MULT("*"), DIV("/");
 
 		/**
-		 * This is string field which contain title of element
+		 * Contain title of element
 		 */
-		private String titleString;
+		private String title;
 
 		/**
-		 * @param titleString string field which must contain title of element
+		 * @param title field which must contain title of element
 		 * Constructor for initializing enum
 		 */
-		Operation(String titleString) {
-			this.titleString = titleString;
+		Operation(String title) {
+			this.title = title;
 		}
 
 		/**
-		 * @param entranceStr string which to be compared against the enum title
-		 * @return returns true if the entranceStr is equal to the title, returns false if the entranceStr is not equal to the title
+		 * @param value field which to be compared against the enum title
+		 * @return returns true if the value is equal to the title, returns false if the value is not equal to the title
 		 * This method of checking if title and entranceStr are equal
 		 */
-		public boolean equalsToEntranceStr(String entranceStr) {
-			return titleString.equals(entranceStr);
+		public boolean titleEqualsTo(String value) {
+			return title.equals(value);
 		}
 	}
 }

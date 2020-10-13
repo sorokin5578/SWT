@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Text;
  * @author Illia
  * @version 1.3
  * 
- * This class to create a calculator using SWT
+ * Class for create a calculator with using SWT
  */
 public class Calculator {
 
@@ -70,7 +70,6 @@ public class Calculator {
 		createHistoryTabItem(mainFolder);
 	}
 
-	// get new instance of shell
 	private void initShell() {
 		shell.setText("SWT Calculator");
 		shell.setImage(Display.getDefault().getSystemImage(SWT.ICON_INFORMATION));
@@ -294,7 +293,7 @@ public class Calculator {
 
 	
 	/**
-	 * This is an enum for initializing arithmetic operations. The title contains the arithmetic operation symbol.
+	 * Enum for initializing arithmetic operations. The title contains the arithmetic operation symbol.
 	 */
 	private enum Operation {
 		ADD("+"), SUB("-"), MULT("*"), DIV("/");
@@ -306,16 +305,15 @@ public class Calculator {
 
 		/**
 		 * @param title field which must contain title of element
-		 * Constructor for initializing enum
 		 */
 		Operation(String title) {
 			this.title = title;
 		}
 
 		/**
-		 * @param value field which to be compared against the enum title
+		 * Checking if title and value are equal
+		 * @param value which to be compared against the enum title
 		 * @return returns true if the value is equal to the title, returns false if the value is not equal to the title
-		 * This method of checking if title and entranceStr are equal
 		 */
 		public boolean titleEqualsTo(String value) {
 			return title.equals(value);
